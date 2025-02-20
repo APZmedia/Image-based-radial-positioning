@@ -1,4 +1,5 @@
 from data.sequence_handler import get_image_info
+import gradio as gr
 
 def create_ui():
     """Creates the Gradio UI layout."""

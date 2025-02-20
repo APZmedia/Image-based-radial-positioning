@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-GROUND_TRUTH_PATH = Path("ground_truth/all_sequences.json")
+GROUND_TRUTH_PATH = Path("data/ground_truth/all_sequences.json")
 
 def load_ground_truth():
     """Loads the all_sequences.json file and structures the data."""
