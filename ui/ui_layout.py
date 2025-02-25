@@ -4,7 +4,7 @@ import gradio as gr
 def create_ui():
     """Creates the Gradio UI layout."""
 
-    with gr.Blocks(title="Camera Position Editor") as demo:
+    with gr.Blocks() as demo:
         gr.Markdown("# Camera Position Editor")
 
         with gr.Row():
