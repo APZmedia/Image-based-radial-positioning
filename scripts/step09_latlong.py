@@ -1,7 +1,6 @@
 import json
 import csv
 import math
-import gradio as gr
 from pathlib import Path
 
 def xy_to_latlon(x, y, center_lat, center_lon, scale_factor):
@@ -55,18 +54,19 @@ def export_csv_with_latlon(json_input_path, csv_output_path):
         
         for step_name, step_info in sequences_data.items():
             for item in step_info.get("items", []):
-                writer.writerow([
-                    item.get("Filename", "Unknown"),
-                    item["camera_position_t"][0] if "camera_position_t" in item else 0.0,
-                    item["camera_position_t"][1] if "camera_position_t" in item else 0.0,
-                    item["camera_position_t"][2] if "camera_position_t" in item else 0.0,
-                    item.get("Omega", 0.0),
-                    item.get("Phi", 0.0),
-                    item.get("Kappa", 0.0),
-                    1.0,  # SigmaHoriz ajustado
-                    0.3,  # SigmaVert ajustado
-                    item.get("Latitude", 0.0),
-                    item.get("Longitude", 0.0)
-                ])
+                filename = item.get("Filename", "Unknown")
+                x = item["camera_position_t"][0] if "camera_position_t" in item else 0.0
+                y = item["camera_position_t"][1] if "camera_position_t" in item else 0.0
+                z = item["camera_position_t"][2] if "camera_position_t" in item else 0.0
+                omega = item.get("Omega", 0.0)
+                phi = item.get("Phi", 0.0)
+                kappa = item.get("Kappa", 0.0)
+                sigma_horiz = 1.0  # Estimación de error horizontal
+                sigma_vert = 0.3  # Estimación de error vertical
+                lat = item.get("Latitude", 0.0)
+                lon = item.get("Longitude", 0.0)
+
+                writer.writerow([filename, x, y, z, omega, phi, kappa, sigma_horiz, sigma_vert, lat, lon])
     
     print(f"✅ CSV con coordenadas geográficas exportado en {csv_output_path}")
+

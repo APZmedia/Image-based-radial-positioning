@@ -4,6 +4,7 @@ from pathlib import Path
 
 # Punto de referencia global (centro de la grúa)
 CENTER = np.array([44.21328905, -29.13029399, 0])
+CENTER_LATLONG = np.array([45.645450576189845, 13.849101061257265])
 
 # Ruta del archivo de Visual Match IDs
 VISUAL_MATCH_IDS_FILE = Path("data/ground_truth/Visual match IDs to columns.csv")

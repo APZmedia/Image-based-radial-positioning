@@ -11,6 +11,8 @@ from scripts.step05_verification import run_step05_verification
 from scripts.step06_orientation_propagation import propagate_orientation
 from scripts.step07_display_comparison import visualize_camera_positions
 from scripts.step08_export_csv import run_step08
+from scripts.step09_latlong import add_latlon_to_json, export_csv_with_latlon
+
 
 def step01_handler(txt_file, input_json_path, output_json_path):
     """
@@ -134,18 +136,19 @@ def step06_handler(json_input_path, json_output_path):
     except Exception as e:
         return f"❌ Error en la propagación de orientación: {e}"
 
-def step07_handler(json_file_path, txt_file_path):
+def step07_handler(json_file_path, selected_sequences):
     """
-    Función de callback para Step07 (Comparación final de posiciones y orientación).
+    Muestra gráficos Omega, Phi y Kappa vs Angular Position por cada secuencia seleccionada.
     """
     if not json_file_path.strip():
         return None, "❌ Error: Falta JSON path."
-    if not txt_file_path.strip():
-        return None, "❌ Error: Falta TXT path."
-    
+
+    if not selected_sequences or not isinstance(selected_sequences, list):
+        selected_sequences = None  # Mostrar todas las secuencias si no hay filtro
+
     try:
-        fig_json = visualize_camera_positions(json_file_path)
-        return fig_json, "✅ Gráficos generados correctamente."
+        figures = visualize_camera_positions(json_file_path, selected_sequences)
+        return figures, "✅ Gráficos generados correctamente."
     except Exception as e:
         return None, f"❌ Error generando visualización: {e}"
 
@@ -168,19 +171,23 @@ def step08_handler(json_input_path, csv_output_path):
 
 def step09_handler(json_input_path, json_output_path, lat_center, lon_center):
     """
-    Maneja la ejecución del Step09 (Asignar coordenadas geográficas y exportar CSV).
+    Handler para Step 09: Asignar latitud y longitud a cada imagen en el dataset y exportar CSV Pix4D.
     """
-    if not json_input_path.strip():
-        return "❌ Error: No se especificó el JSON de entrada."
-    
-    if not json_output_path.strip():
-        return "❌ Error: No se especificó la ruta de salida del JSON."
-    
     try:
-        result_msg = run_step09(json_input_path, json_output_path, lat_center, lon_center)
-        return result_msg
+        # Agregar coordenadas geográficas al JSON
+        add_latlon_to_json(json_input_path, json_output_path, lat_center, lon_center)
+
+        # Generar la ruta del CSV de salida
+        csv_output_path = json_output_path.replace(".json", "_pix4d.csv")
+        
+        # Exportar el dataset en formato Pix4D
+        export_csv_with_latlon(json_output_path, csv_output_path)
+
+        return f"✅ Coordenadas asignadas y CSV exportado en: {csv_output_path}"
+    
     except Exception as e:
-        return f"❌ Error en la asignación de coordenadas: {e}"
+        return f"❌ Error en Step 09: {str(e)}"
+
 
 def launch_ui():
     with gr.Blocks(title="Pipeline Carroponte") as demo:
@@ -345,15 +352,17 @@ def launch_ui():
                     inputs=[json_input_path, csv_output_path],
                     outputs=[status_step08]
                 )
+
             # Step 09
             with gr.Tab("Step 09: Asignar Coordenadas Geográficas"):
                 gr.Markdown("### 9) Asignar latitud y longitud al centro de la posición de todas las imágenes")
+                
                 json_input_path = gr.Textbox(label="Ruta JSON de entrada", value="data/ground_truth/all_sequences_oriented.json")
                 json_output_path = gr.Textbox(label="Ruta JSON de salida", value="data/ground_truth/all_sequences_georeferenced.json")
-                lat_center = gr.Number(label="Latitud del Centro", value=0.0)
-                lon_center = gr.Number(label="Longitud del Centro", value=0.0)
-                
-                run_btn_step09 = gr.Button("Asignar Coordenadas")
+                lat_center = gr.Number(label="Latitud del Centro", value=45.645450576189845)
+                lon_center = gr.Number(label="Longitud del Centro", value=13.84910106125726)
+
+                run_btn_step09 = gr.Button("Asignar Coordenadas y Exportar CSV")
                 status_step09 = gr.Textbox(label="Resultado", interactive=False)
 
                 run_btn_step09.click(
@@ -361,6 +370,7 @@ def launch_ui():
                     inputs=[json_input_path, json_output_path, lat_center, lon_center],
                     outputs=[status_step09]
                 )
+
     
     return demo
 
