@@ -1,9 +1,0 @@
-numpy
-pandas
-matplotlib
-scipy
-plotly
-gradio
-jsonschema
-opencv-python
-
